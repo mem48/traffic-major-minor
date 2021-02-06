@@ -1,6 +1,6 @@
 
 # ################################################################# #
-#### LOAD LIBRARY AND DEFINE CORE SETTINGS                       ####
+#### LOAD LIBRARIES AND DEFINE CORE SETTINGS                     ####
 # ################################################################# #
 
 ### Clear memory
@@ -11,15 +11,12 @@ library(sf)
 library(tmap)
 library(osmdata)
 library(dplyr)
-#library(deldir)
-#library(dodgr)
-#library(geodist)
-#library(dismo)
-#library(RANN)
-#library(pbapply)
-#library(stplanr)
 
 tmap_mode("view")
+
+# ################################################################# #
+#### GET ROAD OSM DATA                                           ####
+# ################################################################# #
 
 ### Get Roads
 q = opq(getbb("isle of wight, UK")) %>%
@@ -32,6 +29,14 @@ osm_raw = readRDS("data/osm_raw.Rds")
 
 
 # ################################################################# #
+#### GET ROAD SHAPEFILES DATA                                    ####
+# ################################################################# #
+
+# Import Strategi shp
+
+strategi <- st_read("data/strategi/urban_region.shp")
+
+# ################################################################# #
 #### PREP INPUT DATA                                             ####
 # ################################################################# #
 
@@ -39,8 +44,6 @@ osm_raw = readRDS("data/osm_raw.Rds")
 osm <- osm_raw$osm_lines
 points <- osm_raw$osm_points
 polys <- osm_raw$osm_polygons # needed for roundabouts
-
-### DON'T UNDERSTAND THIS SYNTAX
 
 polys <- polys[polys$highway %in% c("living_street","primary","primary_link",
                                     "residential","secondary", "secondary_link",
@@ -94,8 +97,6 @@ points <- points[len >= 2,] #Only keep points that intersec at least 2 lines i.e
 points <- points[!duplicated(points$geometry),]
 rm(len, rowsum, inter)
 
-qtm(osm, lines.col = "highway", lines.lwd = 3)
-
 # ################################################################# #
 #### GET AADT COUNTS                                             ####
 # ################################################################# #
@@ -109,10 +110,9 @@ traffic <- traffic[bounds,] #SUBSET??
 
 ### Subset major and minor roads
 osm <- osm[bounds,]
-osm_major <- osm[osm$highway %in% c("primary","secondary","motorway","trunk"),]
-osm_minor <- osm[!osm$highway %in% c("primary","secondary","motorway","trunk"),]
+osm_major <- osm[osm$highway %in% c("motorway","motowray_link","primary","primary_link","trunk","trunk_link"),]
+osm_minor <- osm[!osm$highway %in% c("motorway","motowray_link","primary","primary_link","trunk","trunk_link"),]
 
-### Primary Roads sometimes are missing refs, lets fix that
-#qtm(osm_major, lines.col = "ref", lines.lwd = 3)
-#qtm(osm_minor, lines.col = "ref", lines.lwd = 3)
+
+
 
